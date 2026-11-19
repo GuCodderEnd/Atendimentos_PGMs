@@ -144,6 +144,9 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--a
 .np-head, .np-foot { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 10px 12px; }
 .np-head { border-bottom: 1px solid var(--line); }
 .np-foot { border-top: 1px solid var(--line); justify-content: center; }
+.np-sound { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 8px 12px; border-top: 1px solid var(--line); font-size: 14px; }
+.switch { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+.switch input { width: 16px; height: 16px; accent-color: var(--accent); }
 .np-list { max-height: 360px; overflow-y: auto; display: grid; }
 .np-item { display: grid; gap: 2px; text-align: left; border: 0; background: transparent; color: var(--ink); padding: 10px 12px; border-bottom: 1px solid var(--line); }
 .np-item:last-child { border-bottom: 0; }
@@ -250,6 +253,10 @@ dialog h2 { margin: 0; font-size: 18px; }
             <button class="btn ghost" id="markAllSeen" type="button">Marcar todas como vistas</button>
           </div>
           <div class="np-list" id="notifList"></div>
+          <div class="np-sound">
+            <label class="switch"><input type="checkbox" id="soundToggle" checked><span>Toque ao receber notificação</span></label>
+            <button class="btn ghost" id="soundTest" type="button">Testar</button>
+          </div>
           <div class="np-foot">
             <button class="btn ghost" id="enableAlerts" type="button">Ativar alertas do navegador</button>
           </div>
