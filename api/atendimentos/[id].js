@@ -1,11 +1,15 @@
+import crypto from "node:crypto";
 import { getOne, save, remove } from "../../lib/store.js";
 import { parseFields, cleanName, cleanText, LIMITS } from "../../lib/validate.js";
 import { send, body, protectedRoute } from "../../lib/http.js";
 
 // PATCH aceita:
-//   { action: "edit", link?, desc?, team? }
+//   { action: "edit", link?, youtrack?, desc?, team?, createdAt? }
 //   { action: "resolve", note?, author? }
 //   { action: "reopen" }
+//   { action: "notify", message?, author? }   avisa os outros usuários
+const newNotifId = () => crypto.randomUUID();
+
 export default protectedRoute(async (req, res) => {
   const id = String(req.query.id || "");
   if (!/^[0-9a-f-]{36}$/i.test(id)) return send(res, 400, { error: "Identificador inválido." });
@@ -33,6 +37,10 @@ export default protectedRoute(async (req, res) => {
         note: cleanText(b.note, LIMITS.note),
         updatedAt: now,
       });
+    } else if (b.action === "notify") {
+      const list = Array.isArray(item.notifications) ? item.notifications : [];
+      list.push({ id: newNotifId(), at: now, by: cleanName(b.author), message: cleanText(b.message, LIMITS.notify) });
+      Object.assign(item, { notifications: list.slice(-20), lastNotifiedAt: now, updatedAt: now });
     } else if (b.action === "reopen") {
       Object.assign(item, { status: "aberto", resolvedAt: 0, resolvedBy: "", note: "", updatedAt: now });
     } else {
