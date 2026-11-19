@@ -19,9 +19,10 @@ export default protectedRoute(async (req, res) => {
     const now = Date.now();
     const item = {
       id: newId(),
+      youtrack: "",
       ...value,
       status: "aberto",
-      createdAt: now,
+      createdAt: value.createdAt || now,
       createdBy: cleanName(b.author),
       updatedAt: now,
       resolvedAt: 0,
