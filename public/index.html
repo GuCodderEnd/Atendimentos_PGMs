@@ -167,6 +167,9 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--a
 .toast b { font-weight: 600; }
 .toast small { opacity: .75; }
 .btn.notify { color: var(--accent); }
+.date-range { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; color: var(--muted); flex-wrap: wrap; }
+.date-range[hidden] { display: none; }
+.date-range input { padding: 6px 8px; }
 .opt { font-weight: 400; color: var(--muted); }
 .card .note b { color: var(--done); font-weight: 600; }
 .empty { text-align: center; color: var(--muted); padding: 40px 16px; background: var(--surface); border: 1px dashed var(--line); border-radius: 10px; }
@@ -227,6 +230,7 @@ dialog h2 { margin: 0; font-size: 18px; }
         </div>
       </div>
       <button class="btn ghost" id="logoutBtn" type="button">Trocar nome</button>
+      <a class="btn" id="zendeskBtn" href="https://attus-ai.zendesk.com/agent//" target="_blank" rel="noopener noreferrer" title="Abre o Zendesk em uma nova aba">Abrir Zendesk ↗</a>
       <a class="btn" id="sqlBtn" href="https://codedb.pythonanywhere.com/" target="_blank" rel="noopener noreferrer" title="Abre o assistente de SQL em uma nova aba">Assistente de SQL ↗</a>
       <button class="btn primary" id="addBtn" type="button">+ Novo atendimento</button>
     </div>
@@ -261,7 +265,14 @@ dialog h2 { margin: 0; font-size: 18px; }
         <option value="week">Resolvidos esta semana</option>
         <option value="last">Semana passada</option>
         <option value="all">Todo o histórico</option>
+        <option value="custom">Escolher data…</option>
       </select>
+      <span class="date-range" id="dateRange" hidden>
+        <label for="dFrom">De</label>
+        <input id="dFrom" type="date">
+        <label for="dTo">até</label>
+        <input id="dTo" type="date" title="Deixe em branco para ver só um dia">
+      </span>
     </div>
   </div>
 
