@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Atendimento em análise técnica - PGMs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Fraunces:opsz,wght@9..144,600&display=swap" rel="stylesheet">
+<style>
+/* Layout: cabeçalho com resumo da semana, abas Em aberto / Resolvidos, lista de cartões em linha única. */
+:root {
+  --bg: #f4f5f7;
+  --surface: #ffffff;
+  --ink: #1b2130;
+  --muted: #5d6578;
+  --line: #dde1e8;
+  --accent: #2b4acb;
+  --accent-ink: #ffffff;
+  --open: #b25e00;
+  --open-bg: #fff2df;
+  --done: #1d7a46;
+  --done-bg: #e3f4ea;
+  --late: #b4232f;
+  --late-bg: #fde8ea;
+  --font-display: "Fraunces", Georgia, serif;
+  --font-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #12151c; --surface: #1a1e28; --ink: #e7e9ef; --muted: #9aa2b4; --line: #2c3240;
+    --accent: #7d95ff; --accent-ink: #0f1320;
+    --open: #f0a64a; --open-bg: #3a2a14; --done: #5fcf8e; --done-bg: #16301f; --late: #ff7f89; --late-bg: #3a1a1e;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #12151c; --surface: #1a1e28; --ink: #e7e9ef; --muted: #9aa2b4; --line: #2c3240;
+  --accent: #7d95ff; --accent-ink: #0f1320;
+  --open: #f0a64a; --open-bg: #3a2a14; --done: #5fcf8e; --done-bg: #16301f; --late: #ff7f89; --late-bg: #3a1a1e;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 15px; line-height: 1.5; }
+.wrap { max-width: 1040px; margin: 0 auto; padding: 28px 20px 64px; display: grid; gap: 20px; }
+header.top { display: flex; flex-wrap: wrap; gap: 16px; align-items: end; justify-content: space-between; }
+h1 { font-family: var(--font-display); font-weight: 600; font-size: 28px; line-height: 1.15; margin: 0; text-wrap: balance; }
+.week-label { color: var(--muted); font-size: 14px; margin-top: 4px; }
+button { font: inherit; cursor: pointer; }
+a.btn { text-decoration: none; display: inline-block; }
+.btn { border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 8px; padding: 8px 14px; font-weight: 500; }
+.btn:hover { border-color: var(--muted); }
+.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.btn.primary:hover { filter: brightness(1.08); }
+.btn.ghost { background: transparent; border-color: transparent; color: var(--muted); padding: 6px 10px; }
+.btn.ghost:hover { color: var(--ink); background: var(--bg); }
+.btn.ok { color: var(--done); border-color: var(--done); background: transparent; }
+.btn.ok:hover { background: var(--done-bg); }
+.btn:disabled { opacity: .5; cursor: not-allowed; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.stat { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; }
+.stat .n { font-size: 26px; font-weight: 600; font-variant-numeric: tabular-nums; line-height: 1.1; }
+.stat .l { color: var(--muted); font-size: 13px; }
+.stat.open .n { color: var(--open); }
+.stat.done .n { color: var(--done); }
+.stat.late .n { color: var(--late); }
+
+.bar { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--line); }
+.tabs { display: flex; gap: 4px; }
+.tab { border: 0; background: transparent; color: var(--muted); padding: 10px 14px; font-weight: 600; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+.tab[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent); }
+.tab .count { font-variant-numeric: tabular-nums; font-weight: 500; color: var(--muted); margin-left: 4px; }
+.filters { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding-bottom: 8px; }
+input, select, textarea { font: inherit; color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 7px 10px; }
+input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 20%, transparent); }
+#q { width: 220px; }
+
+.group-title { font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); font-weight: 600; margin: 8px 0 -8px; }
+.list { display: grid; gap: 10px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-left: 4px solid var(--open); border-radius: 10px; padding: 14px 16px; display: grid; grid-template-columns: 1fr auto; gap: 8px 16px; }
+.card.late { border-left-color: var(--late); }
+.card.resolved { border-left-color: var(--done); }
+.card .meta { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-size: 13px; color: var(--muted); }
+.pill { display: inline-block; border-radius: 999px; padding: 2px 10px; font-size: 12px; font-weight: 600; }
+.pill.team { background: var(--bg); color: var(--ink); border: 1px solid var(--line); }
+.pill.open { background: var(--open-bg); color: var(--open); }
+.pill.late { background: var(--late-bg); color: var(--late); }
+.pill.done { background: var(--done-bg); color: var(--done); }
+.card .desc { white-space: pre-wrap; overflow-wrap: anywhere; margin: 2px 0 0; }
+.card a.link { font-family: var(--font-mono); font-size: 13px; color: var(--accent); text-decoration: none; overflow-wrap: anywhere; }
+.card a.link:hover { text-decoration: underline; }
+.card .actions { display: flex; gap: 4px; align-items: start; flex-wrap: wrap; justify-content: end; }
+.card .note { grid-column: 1 / -1; background: var(--done-bg); border-radius: 8px; padding: 8px 12px; font-size: 14px; }
+.card .note b { color: var(--done); font-weight: 600; }
+.empty { text-align: center; color: var(--muted); padding: 40px 16px; background: var(--surface); border: 1px dashed var(--line); border-radius: 10px; }
+.banner { padding: 10px 14px; border-radius: 8px; background: var(--open-bg); color: var(--open); font-size: 14px; }
+.banner[hidden] { display: none; }
+
+dialog { border: 1px solid var(--line); border-radius: 12px; padding: 0; background: var(--surface); color: var(--ink); width: min(560px, calc(100% - 32px)); }
+dialog::backdrop { background: rgb(10 14 24 / .45); }
+dialog form { display: grid; gap: 14px; padding: 20px; }
+dialog h2 { margin: 0; font-size: 18px; }
+.field { display: grid; gap: 4px; }
+.field label { font-weight: 600; font-size: 14px; }
+.field .hint { font-size: 12px; color: var(--muted); }
+.field textarea { min-height: 96px; resize: vertical; }
+.form-actions { display: flex; justify-content: end; gap: 8px; }
+.err { color: var(--late); font-size: 13px; min-height: 1em; }
+
+@media (max-width: 720px) {
+  .stats { grid-template-columns: repeat(2, 1fr); }
+  .card { grid-template-columns: 1fr; }
+  .card .actions { justify-content: start; }
+  #q { width: 100%; }
+  .filters { width: 100%; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+.whoami { color: var(--muted); font-size: 13px; }
+.sync { font-size: 12px; color: var(--muted); }
+.login { position: fixed; inset: 0; background: var(--bg); display: grid; place-items: center; padding: 20px; z-index: 10; }
+.login[hidden] { display: none; }
+.login form { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 24px; width: min(400px, 100%); display: grid; gap: 14px; }
+.login h2 { font-family: var(--font-display); font-weight: 600; margin: 0; font-size: 22px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1>Atendimento em análise técnica - PGMs</h1>
+      <div class="week-label"><span id="weekLabel"></span> · <span class="sync" id="sync">conectando…</span></div>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <span class="whoami" id="whoami"></span>
+      <button class="btn ghost" id="logoutBtn" type="button">Trocar nome</button>
+      <a class="btn" id="sqlBtn" href="https://codedb.pythonanywhere.com/" target="_blank" rel="noopener noreferrer" title="Abre o assistente de SQL em uma nova aba">Assistente de SQL ↗</a>
+      <button class="btn primary" id="addBtn" type="button">+ Novo atendimento</button>
+    </div>
+  </header>
+
+  <div class="banner" id="banner" hidden></div>
+
+  <section class="stats" aria-label="Resumo da semana">
+    <div class="stat open"><div class="n" id="sOpen">0</div><div class="l">Em aberto agora</div></div>
+    <div class="stat"><div class="n" id="sNew">0</div><div class="l">Incluídos esta semana</div></div>
+    <div class="stat done"><div class="n" id="sDone">0</div><div class="l">Resolvidos esta semana</div></div>
+    <div class="stat late"><div class="n" id="sLate">0</div><div class="l">Abertos de semanas anteriores</div></div>
+  </section>
+
+  <div class="bar">
+    <div class="tabs" role="tablist">
+      <button class="tab" role="tab" id="tabOpen" aria-selected="true" type="button">Em aberto<span class="count" id="cOpen"></span></button>
+      <button class="tab" role="tab" id="tabDone" aria-selected="false" type="button">Resolvidos<span class="count" id="cDone"></span></button>
+    </div>
+    <div class="filters">
+      <input id="q" type="search" placeholder="Buscar por descrição ou link" aria-label="Buscar">
+      <select id="teamFilter" aria-label="Filtrar por equipe"><option value="">Todas as equipes</option></select>
+      <select id="periodFilter" aria-label="Período" hidden>
+        <option value="week">Resolvidos esta semana</option>
+        <option value="last">Semana passada</option>
+        <option value="all">Todo o histórico</option>
+      </select>
+    </div>
+  </div>
+
+  <main id="content"><div class="empty">Carregando atendimentos…</div></main>
+</div>
+
+<div class="login" id="login" hidden>
+  <form id="loginForm" novalidate>
+    <h2>Atendimento em análise técnica - PGMs</h2>
+    <p style="margin:0;color:var(--muted)">Informe seu nome para registrar quem incluiu e concluiu cada atendimento.</p>
+    <div class="field">
+      <label for="lName">Seu nome</label>
+      <input id="lName" autocomplete="name" placeholder="Ex.: Gustavo Araujo" required>
+    </div>
+    <div class="err" id="loginErr"></div>
+    <button class="btn primary" type="submit" id="loginBtn">Entrar</button>
+  </form>
+</div>
+
+<dialog id="editDlg">
+  <form id="editForm" novalidate>
+    <h2 id="editTitle">Novo atendimento</h2>
+    <div class="field">
+      <label for="fLink">Link do atendimento</label>
+      <input id="fLink" type="url" placeholder="https://..." required>
+    </div>
+    <div class="field">
+      <label for="fDesc">O que está ocorrendo</label>
+      <textarea id="fDesc" placeholder="Descreva o problema relatado e o que já foi verificado" required></textarea>
+    </div>
+    <div class="field">
+      <label for="fTeam">Equipe responsável</label>
+      <input id="fTeam" list="teamList" placeholder="Ex.: Infraestrutura" required>
+      <datalist id="teamList"></datalist>
+      <span class="hint">Escolha uma equipe já usada ou digite uma nova.</span>
+    </div>
+    <div class="err" id="editErr"></div>
+    <div class="form-actions">
+      <button class="btn" type="button" id="editCancel">Cancelar</button>
+      <button class="btn primary" type="submit" id="editSave">Salvar</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="doneDlg">
+  <form id="doneForm" novalidate>
+    <h2>Marcar como resolvido</h2>
+    <p style="margin:0;color:var(--muted)" id="doneSummary"></p>
+    <div class="field">
+      <label for="fNote">Como foi resolvido <span style="font-weight:400;color:var(--muted)">(opcional)</span></label>
+      <textarea id="fNote" placeholder="Ex.: Ajuste de permissão aplicado pela equipe de Infra"></textarea>
+    </div>
+    <div class="err" id="doneErr"></div>
+    <div class="form-actions">
+      <button class="btn" type="button" id="doneCancel">Cancelar</button>
+      <button class="btn primary" type="submit" id="doneSave">Concluir atendimento</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="delDlg">
+  <form id="delForm" novalidate>
+    <h2>Excluir atendimento?</h2>
+    <p style="margin:0;color:var(--muted)">O registro será apagado para todos e não ficará no histórico. Para guardar no histórico, use “Concluir”.</p>
+    <div class="err" id="delErr"></div>
+    <div class="form-actions">
+      <button class="btn" type="button" id="delCancel">Cancelar</button>
+      <button class="btn primary" type="submit" style="background:var(--late);border-color:var(--late)">Excluir</button>
+    </div>
+  </form>
+</dialog>
+
+<script src="/app.js" defer></script>
+</body>
+</html>
