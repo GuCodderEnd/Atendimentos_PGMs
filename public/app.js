@@ -120,7 +120,7 @@
     refresh();
     pollTimer = setInterval(() => {
       if (!document.hidden) refresh();
-      else if (alertsOn() && Date.now() - lastSync > 60000) refresh(); // em segundo plano: a cada 1 min
+      else if ((alertsOn() || soundOn()) && Date.now() - lastSync > 60000) refresh(); // em segundo plano: a cada 1 min
     }, POLL_MS);
   }
   function stopPolling() { if (pollTimer) clearInterval(pollTimer); pollTimer = null; }
@@ -476,6 +476,7 @@
     if (knownNotifIds === null) { knownNotifIds = new Set(inbox.items.map((n) => n.id)); return; }
     const added = unread.filter((n) => !knownNotifIds.has(n.id));
     for (const n of inbox.items) knownNotifIds.add(n.id);
+    if (added.length) chime();
     for (const n of added.slice(0, 3)) {
       const title = (n.by || "Alguém") + " notificou você";
       const body = (n.message || "Atendimento atualizado.") + " — " + shortUrl(n.link);
@@ -526,7 +527,45 @@
   $("markAllSeen").onclick = () => markAllRead();
   // Alertas do navegador
   function alertsOn() { return "Notification" in window && Notification.permission === "granted"; }
+  // Toque de notificação (gerado no navegador, sem arquivo de áudio)
+  let audioCtx = null;
+  const soundKey = () => "atd_sound_" + (me ? me.username : "");
+  function soundOn() { try { return localStorage.getItem(soundKey()) !== "off"; } catch { return true; } }
+  function unlockAudio() {
+    try {
+      if (!audioCtx) { const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return null; audioCtx = new AC(); }
+      if (audioCtx.state === "suspended") audioCtx.resume();
+    } catch { return null; }
+    return audioCtx;
+  }
+  // O navegador só libera som depois de um clique ou tecla na página.
+  for (const ev of ["pointerdown", "keydown"]) document.addEventListener(ev, unlockAudio, { passive: true });
+  function chime(force) {
+    if (!force && !soundOn()) return;
+    const ctx = unlockAudio();
+    if (!ctx) return;
+    const t0 = ctx.currentTime + 0.02;
+    // Duas notas (Lá e Mi) com decaimento suave
+    [[880, 0], [1318.5, 0.16]].forEach(([freq, delay]) => {
+      const osc = ctx.createOscillator(), gain = ctx.createGain();
+      osc.type = "sine";
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(0.0001, t0 + delay);
+      gain.gain.exponentialRampToValueAtTime(0.25, t0 + delay + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t0 + delay + 0.6);
+      osc.connect(gain).connect(ctx.destination);
+      osc.start(t0 + delay);
+      osc.stop(t0 + delay + 0.65);
+    });
+  }
+  $("soundToggle").addEventListener("change", (e) => {
+    try { localStorage.setItem(soundKey(), e.target.checked ? "on" : "off"); } catch {}
+    if (e.target.checked) chime(true);
+  });
+  $("soundTest").onclick = () => chime(true);
+
   function renderAlertsBtn() {
+    $("soundToggle").checked = soundOn();
     const b = $("enableAlerts");
     if (!("Notification" in window)) { b.textContent = "Este navegador não suporta alertas"; b.disabled = true; }
     else if (Notification.permission === "granted") { b.textContent = "Alertas do navegador ativados"; b.disabled = true; }
