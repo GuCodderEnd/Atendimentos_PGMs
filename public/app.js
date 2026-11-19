@@ -173,6 +173,7 @@
     $("tabOpen").setAttribute("aria-selected", state.tab === "open");
     $("tabDone").setAttribute("aria-selected", state.tab === "done");
     $("periodFilter").hidden = state.tab !== "done";
+    $("dateRange").hidden = state.tab !== "done" || state.period !== "custom";
 
     renderBell();
     if (!state.loaded) return;
@@ -201,13 +202,18 @@
       let list = done.filter(match);
       if (state.period === "week") list = list.filter((i) => i.resolvedAt >= start);
       else if (state.period === "last") list = list.filter((i) => i.resolvedAt >= prevStart && i.resolvedAt < start);
+      else if (state.period === "custom") {
+        const r = customRange();
+        if (r) list = list.filter((i) => i.resolvedAt >= r.from && i.resolvedAt < r.to);
+      }
       list.sort((a, b) => b.resolvedAt - a.resolvedAt);
       visibleIds = list.map((i) => i.id);
       updateCollapseAll();
       if (!list.length) {
         content.replaceChildren(el("div", { class: "empty" },
           state.period === "week" ? "Nenhum atendimento resolvido nesta semana ainda." :
-          state.period === "last" ? "Nenhum atendimento resolvido na semana passada." : "O histórico de resolvidos está vazio."));
+          state.period === "last" ? "Nenhum atendimento resolvido na semana passada." :
+          state.period === "custom" ? (customRange() ? "Nenhum atendimento resolvido " + customRangeLabel() + "." : "Escolha a data inicial para ver os resolvidos.") : "O histórico de resolvidos está vazio."));
         return;
       }
       content.replaceChildren(el("div", { class: "list" }, list.map((i) => card(i, false))));
@@ -409,6 +415,25 @@
   });
   $("notifyCancel").onclick = () => $("notifyDlg").close();
 
+  // ---------- Período escolhido no histórico ----------
+  function dayStart(v) {
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(v || "");
+    return m ? new Date(+m[1], +m[2] - 1, +m[3]).getTime() : null;
+  }
+  function customRange() {
+    const from = dayStart($("dFrom").value);
+    if (from == null) return null;
+    let toDay = dayStart($("dTo").value);
+    if (toDay == null || toDay < from) toDay = from;
+    const to = new Date(toDay); to.setDate(to.getDate() + 1);
+    return { from, to: to.getTime() };
+  }
+  function customRangeLabel() {
+    const r = customRange();
+    const a = fmtDate.format(new Date(r.from)), b = fmtDate.format(new Date(r.to - 1));
+    return a === b ? "em " + a : "de " + a + " a " + b;
+  }
+
   // ---------- Datas do formulário ----------
   function toInputDate(ms) {
     const d = new Date(ms);
@@ -501,7 +526,17 @@
   $("q").addEventListener("input", (e) => { state.q = e.target.value; render(); });
   $("teamFilter").addEventListener("change", (e) => { state.team = e.target.value; render(); });
   $("prioFilter").addEventListener("change", (e) => { state.prio = e.target.value; render(); });
-  $("periodFilter").addEventListener("change", (e) => { state.period = e.target.value; render(); });
+  $("periodFilter").addEventListener("change", (e) => {
+    state.period = e.target.value;
+    if (state.period === "custom" && !$("dFrom").value) {
+      $("dFrom").value = toInputDate(Date.now());
+      $("dFrom").max = $("dTo").max = toInputDate(Date.now());
+    }
+    render();
+    if (state.period === "custom") $("dFrom").focus();
+  });
+  $("dFrom").addEventListener("change", () => { $("dTo").min = $("dFrom").value; render(); });
+  $("dTo").addEventListener("change", render);
 
   setInterval(() => { if (state.loaded && !document.hidden) render(); }, 60000); // atualiza "há X min"
 
