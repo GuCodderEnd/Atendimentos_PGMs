@@ -23,6 +23,11 @@
   --done-bg: #e3f4ea;
   --late: #b4232f;
   --late-bg: #fde8ea;
+  --p-baixa: #4f6b8a; --p-baixa-bg: #e6edf5;
+  --p-media: #8a6d00; --p-media-bg: #fbf1c7;
+  --p-alta: #c2410c; --p-alta-bg: #ffe4d3;
+  --p-urgente: #ffffff; --p-urgente-bg: #c8102e;
+  --upd-bg: #eaf0ff; --upd-line: #b9c8f5;
   --font-display: "Fraunces", Georgia, serif;
   --font-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
@@ -33,6 +38,7 @@
     --bg: #12151c; --surface: #1a1e28; --ink: #e7e9ef; --muted: #9aa2b4; --line: #2c3240;
     --accent: #7d95ff; --accent-ink: #0f1320;
     --open: #f0a64a; --open-bg: #3a2a14; --done: #5fcf8e; --done-bg: #16301f; --late: #ff7f89; --late-bg: #3a1a1e;
+    --p-baixa: #a9bdd6; --p-baixa-bg: #243244; --p-media: #f2d266; --p-media-bg: #3a3214; --p-alta: #ffad7a; --p-alta-bg: #43240f; --p-urgente: #ffffff; --p-urgente-bg: #d32f45; --upd-bg: #1d2645; --upd-line: #34427a;
     color-scheme: dark;
   }
 }
@@ -40,6 +46,7 @@
   --bg: #12151c; --surface: #1a1e28; --ink: #e7e9ef; --muted: #9aa2b4; --line: #2c3240;
   --accent: #7d95ff; --accent-ink: #0f1320;
   --open: #f0a64a; --open-bg: #3a2a14; --done: #5fcf8e; --done-bg: #16301f; --late: #ff7f89; --late-bg: #3a1a1e;
+    --p-baixa: #a9bdd6; --p-baixa-bg: #243244; --p-media: #f2d266; --p-media-bg: #3a3214; --p-alta: #ffad7a; --p-alta-bg: #43240f; --p-urgente: #ffffff; --p-urgente-bg: #d32f45; --upd-bg: #1d2645; --upd-line: #34427a;
   color-scheme: dark;
 }
 * { box-sizing: border-box; }
@@ -96,6 +103,71 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--a
 .card a.link:hover { text-decoration: underline; }
 .card .actions { display: flex; gap: 4px; align-items: start; flex-wrap: wrap; justify-content: end; }
 .card .note { grid-column: 1 / -1; background: var(--done-bg); border-radius: 8px; padding: 8px 12px; font-size: 14px; }
+.card .body { display: grid; gap: 6px; }
+.card .head { display: flex; gap: 8px; align-items: center; min-width: 0; }
+.card .links { display: grid; gap: 2px; min-width: 0; }
+.card .link-row { display: flex; gap: 8px; align-items: baseline; min-width: 0; }
+.src { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); min-width: 64px; }
+.toggle { border: 0; background: transparent; color: var(--muted); width: 28px; height: 28px; border-radius: 6px; flex: none; display: grid; place-items: center; }
+.toggle:hover { background: var(--bg); color: var(--ink); }
+.toggle svg { transition: transform .15s; }
+.card.collapsed .toggle svg { transform: rotate(-90deg); }
+.card.collapsed { padding-top: 8px; padding-bottom: 8px; grid-template-columns: 1fr; }
+.card.collapsed .body, .card.collapsed .actions, .card.collapsed .note { display: none; }
+.card.collapsed .src { display: none; }
+.prio { display: inline-flex; align-items: center; gap: 6px; border-radius: 999px; padding: 2px 10px; font-size: 12px; font-weight: 700; flex: none; }
+.prio::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.prio.p-baixa { color: var(--p-baixa); background: var(--p-baixa-bg); }
+.prio.p-media { color: var(--p-media); background: var(--p-media-bg); }
+.prio.p-alta { color: var(--p-alta); background: var(--p-alta-bg); }
+.prio.p-urgente { color: var(--p-urgente); background: var(--p-urgente-bg); }
+.card.prio-urgente { box-shadow: inset 0 0 0 1px var(--p-urgente-bg); }
+.prio-field { border: 0; padding: 0; margin: 0; }
+.prio-field legend { font-weight: 600; font-size: 14px; padding: 0; margin-bottom: 4px; }
+.prio-options { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+.prio-opt { position: relative; cursor: pointer; }
+.prio-opt input { position: absolute; opacity: 0; inset: 0; cursor: pointer; }
+.prio-opt span { display: block; text-align: center; padding: 7px 4px; border-radius: 8px; border: 1px solid var(--line); font-weight: 600; font-size: 14px; color: var(--muted); }
+.prio-opt input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 2px; }
+.prio-opt.p-baixa input:checked + span { color: var(--p-baixa); background: var(--p-baixa-bg); border-color: var(--p-baixa); }
+.prio-opt.p-media input:checked + span { color: var(--p-media); background: var(--p-media-bg); border-color: var(--p-media); }
+.prio-opt.p-alta input:checked + span { color: var(--p-alta); background: var(--p-alta-bg); border-color: var(--p-alta); }
+.prio-opt.p-urgente input:checked + span { color: var(--p-urgente); background: var(--p-urgente-bg); border-color: var(--p-urgente-bg); }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.bell-wrap { position: relative; }
+.bell { position: relative; display: inline-grid; place-items: center; padding: 8px 10px; }
+.bell-count { position: absolute; top: -6px; right: -6px; min-width: 20px; height: 20px; padding: 0 5px; border-radius: 999px; background: var(--p-urgente-bg); color: #fff; font-size: 12px; font-weight: 700; line-height: 20px; text-align: center; font-variant-numeric: tabular-nums; }
+.bell-count[hidden] { display: none; }
+.bell.has-new { border-color: var(--accent); color: var(--accent); }
+.notif-panel { position: fixed; width: min(380px, calc(100vw - 32px)); background: var(--surface); border: 1px solid var(--line); border-radius: 12px; box-shadow: 0 12px 32px rgb(10 14 24 / .18); z-index: 20; display: grid; }
+.notif-panel[hidden] { display: none; }
+.np-head, .np-foot { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 10px 12px; }
+.np-head { border-bottom: 1px solid var(--line); }
+.np-foot { border-top: 1px solid var(--line); justify-content: center; }
+.np-list { max-height: 360px; overflow-y: auto; display: grid; }
+.np-item { display: grid; gap: 2px; text-align: left; border: 0; background: transparent; color: var(--ink); padding: 10px 12px; border-bottom: 1px solid var(--line); }
+.np-item:last-child { border-bottom: 0; }
+.np-item:hover { background: var(--bg); }
+.np-item .np-link { font-family: var(--font-mono); font-size: 12px; color: var(--accent); overflow-wrap: anywhere; }
+.np-item .np-msg { font-size: 14px; overflow-wrap: anywhere; }
+.np-item .np-when { font-size: 12px; color: var(--muted); }
+.np-empty { padding: 20px 12px; text-align: center; color: var(--muted); font-size: 14px; }
+.upd { display: flex; gap: 8px; align-items: start; background: var(--upd-bg); border: 1px solid var(--upd-line); border-radius: 8px; padding: 8px 10px; font-size: 14px; }
+.upd.seen { background: transparent; border-color: var(--line); color: var(--muted); }
+.upd svg { flex: none; margin-top: 2px; color: var(--accent); }
+.upd .upd-text { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.upd .upd-when { color: var(--muted); font-size: 12px; }
+.upd .btn { padding: 2px 8px; font-size: 13px; }
+.new-badge { display: inline-flex; align-items: center; gap: 5px; border-radius: 999px; padding: 2px 9px; font-size: 12px; font-weight: 700; background: var(--accent); color: var(--accent-ink); flex: none; }
+.card.has-new { box-shadow: 0 0 0 2px var(--accent); }
+.card.flash { animation: flash 1.2s ease-out; }
+@keyframes flash { from { background: var(--upd-bg); } to { background: var(--surface); } }
+.toasts { position: fixed; right: 16px; bottom: 16px; display: grid; gap: 8px; z-index: 30; width: min(360px, calc(100vw - 32px)); }
+.toast { background: var(--ink); color: var(--bg); border-radius: 10px; padding: 10px 12px; box-shadow: 0 8px 24px rgb(10 14 24 / .25); display: grid; gap: 4px; font-size: 14px; cursor: pointer; text-align: left; border: 0; }
+.toast b { font-weight: 600; }
+.toast small { opacity: .75; }
+.btn.notify { color: var(--accent); }
+.opt { font-weight: 400; color: var(--muted); }
 .card .note b { color: var(--done); font-weight: 600; }
 .empty { text-align: center; color: var(--muted); padding: 40px 16px; background: var(--surface); border: 1px dashed var(--line); border-radius: 10px; }
 .banner { padding: 10px 14px; border-radius: 8px; background: var(--open-bg); color: var(--open); font-size: 14px; }
@@ -137,6 +209,23 @@ dialog h2 { margin: 0; font-size: 18px; }
     </div>
     <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
       <span class="whoami" id="whoami"></span>
+      <div class="bell-wrap">
+        <button class="btn bell" id="bellBtn" type="button" aria-haspopup="true" aria-expanded="false" aria-controls="notifPanel" title="Notificações">
+          <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span class="sr-only">Notificações</span>
+          <span class="bell-count" id="bellCount" hidden>0</span>
+        </button>
+        <div class="notif-panel" id="notifPanel" hidden>
+          <div class="np-head">
+            <strong>Notificações</strong>
+            <button class="btn ghost" id="markAllSeen" type="button">Marcar todas como vistas</button>
+          </div>
+          <div class="np-list" id="notifList"></div>
+          <div class="np-foot">
+            <button class="btn ghost" id="enableAlerts" type="button">Ativar alertas do navegador</button>
+          </div>
+        </div>
+      </div>
       <button class="btn ghost" id="logoutBtn" type="button">Trocar nome</button>
       <a class="btn" id="sqlBtn" href="https://codedb.pythonanywhere.com/" target="_blank" rel="noopener noreferrer" title="Abre o assistente de SQL em uma nova aba">Assistente de SQL ↗</a>
       <button class="btn primary" id="addBtn" type="button">+ Novo atendimento</button>
@@ -159,7 +248,15 @@ dialog h2 { margin: 0; font-size: 18px; }
     </div>
     <div class="filters">
       <input id="q" type="search" placeholder="Buscar por descrição ou link" aria-label="Buscar">
+      <button class="btn" id="collapseAll" type="button">Minimizar todos</button>
       <select id="teamFilter" aria-label="Filtrar por equipe"><option value="">Todas as equipes</option></select>
+      <select id="prioFilter" aria-label="Filtrar por prioridade">
+        <option value="">Todas as prioridades</option>
+        <option value="urgente">Urgente</option>
+        <option value="alta">Alta</option>
+        <option value="media">Média</option>
+        <option value="baixa">Baixa</option>
+      </select>
       <select id="periodFilter" aria-label="Período" hidden>
         <option value="week">Resolvidos esta semana</option>
         <option value="last">Semana passada</option>
@@ -188,8 +285,26 @@ dialog h2 { margin: 0; font-size: 18px; }
   <form id="editForm" novalidate>
     <h2 id="editTitle">Novo atendimento</h2>
     <div class="field">
-      <label for="fLink">Link do atendimento</label>
-      <input id="fLink" type="url" placeholder="https://..." required>
+      <label for="fLink">Link do Zendesk</label>
+      <input id="fLink" type="url" placeholder="https://suaempresa.zendesk.com/agent/tickets/..." required>
+    </div>
+    <div class="field">
+      <label for="fYt">Link do YouTrack <span class="opt">(opcional)</span></label>
+      <input id="fYt" type="url" placeholder="https://suaempresa.youtrack.cloud/issue/...">
+    </div>
+    <fieldset class="field prio-field">
+      <legend>Prioridade</legend>
+      <div class="prio-options" role="radiogroup">
+        <label class="prio-opt p-baixa"><input type="radio" name="fPrio" value="baixa"><span>Baixa</span></label>
+        <label class="prio-opt p-media"><input type="radio" name="fPrio" value="media" checked><span>Média</span></label>
+        <label class="prio-opt p-alta"><input type="radio" name="fPrio" value="alta"><span>Alta</span></label>
+        <label class="prio-opt p-urgente"><input type="radio" name="fPrio" value="urgente"><span>Urgente</span></label>
+      </div>
+    </fieldset>
+    <div class="field">
+      <label for="fDate">Data de abertura</label>
+      <input id="fDate" type="date" required>
+      <span class="hint">Use uma data anterior para registrar atendimentos antigos.</span>
     </div>
     <div class="field">
       <label for="fDesc">O que está ocorrendo</label>
@@ -224,6 +339,25 @@ dialog h2 { margin: 0; font-size: 18px; }
     </div>
   </form>
 </dialog>
+
+<dialog id="notifyDlg">
+  <form id="notifyForm" novalidate>
+    <h2>Notificar atualização</h2>
+    <p style="margin:0;color:var(--muted)" id="notifySummary"></p>
+    <div class="field">
+      <label for="fNotify">O que mudou? <span class="opt">(opcional)</span></label>
+      <textarea id="fNotify" maxlength="500" placeholder="Ex.: Equipe de Backend encontrou a causa; correção prevista para amanhã"></textarea>
+      <span class="hint">Todos que estiverem usando o painel verão o aviso neste atendimento.</span>
+    </div>
+    <div class="err" id="notifyErr"></div>
+    <div class="form-actions">
+      <button class="btn" type="button" id="notifyCancel">Cancelar</button>
+      <button class="btn primary" type="submit" id="notifySave">Enviar notificação</button>
+    </div>
+  </form>
+</dialog>
+
+<div class="toasts" id="toasts" aria-live="polite"></div>
 
 <dialog id="delDlg">
   <form id="delForm" novalidate>
