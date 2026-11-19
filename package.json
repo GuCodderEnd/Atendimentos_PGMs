@@ -1,0 +1,16 @@
+{
+  "name": "atendimentos-analise-tecnica",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Painel de atendimentos em análise técnica (Vercel + Upstash Redis)",
+  "scripts": {
+    "dev": "vercel dev"
+  },
+  "dependencies": {
+    "@upstash/redis": "1.35.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
